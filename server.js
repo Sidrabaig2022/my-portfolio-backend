@@ -4,6 +4,14 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 
 const app = express();
+require("dotenv").config();
+console.log("MONGO_URI:", process.env.MONGO_URI); // Debugging
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB Connected Successfully!"))
+  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+
 
 // ✅ CORS Configuration (Allow Local Development & Future Deployed URL)
 app.use(

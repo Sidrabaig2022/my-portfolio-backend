@@ -90,5 +90,11 @@ wss.on("connection", (ws) => {
 });
 
 // ✅ Start Server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+process.on("SIGTERM", () => {
+    console.log("Received SIGTERM. Gracefully shutting down...");
+    process.exit(0);
+  });
+  

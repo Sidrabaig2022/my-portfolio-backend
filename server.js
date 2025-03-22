@@ -89,6 +89,16 @@ wss.on("connection", (ws) => {
   ws.on("close", () => console.log("⚠️ WebSocket disconnected"));
 });
 
+// Test route
+app.get("/", (req, res) => {
+    res.send("Backend is running! 🚀");
+  });
+  
+  // API route
+  app.get("/api/projects", (req, res) => {
+    res.json({ message: "Projects API is working!" });
+  });
+
 // ✅ Start Server
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
@@ -98,3 +108,5 @@ process.on("SIGTERM", () => {
     process.exit(0);
   });
   
+  const projectsRoutes = require("./routes/projects");
+app.use("/api/projects", projectsRoutes);

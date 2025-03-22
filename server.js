@@ -2,29 +2,31 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const http = require("http"); // ✅ Import http for WebSockets
+const WebSocket = require("ws");
 
 const app = express();
-require("dotenv").config();
-console.log("MONGO_URI:", process.env.MONGO_URI); // Debugging
+const server = http.createServer(app); // ✅ Create HTTP Server
+const wss = new WebSocket.Server({ server }); // ✅ WebSocket server attached
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected Successfully!"))
-  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+// ✅ CORS Configuration
+const allowedOrigins =
+  process.env.NODE_ENV === "development"
+    ? ["http://localhost:3000"]
+    : ["https://techsidra-my-portfolio-wn9h.vercel.app"];
 
-
-// ✅ CORS Configuration (Allow Local Development & Future Deployed URL)
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://your-deployed-frontend.com"], // Update this for deployment
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
+// ✅ Middleware
 app.use(express.json());
 
-// ✅ Connect to MongoDB
+// ✅ Connect to MongoDB (Only Once)
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
   console.error("❌ MongoDB URI is missing! Set MONGO_URI in .env");
@@ -48,7 +50,7 @@ const ContactSchema = new mongoose.Schema(
 
 const Contact = mongoose.model("Contact", ContactSchema);
 
-// ✅ API Route to Save Messages
+// ✅ API Routes
 app.post("/api/contact", async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -65,7 +67,6 @@ app.post("/api/contact", async (req, res) => {
   }
 });
 
-// ✅ GET Route to Retrieve Messages
 app.get("/api/contact", async (req, res) => {
   try {
     const messages = await Contact.find().sort({ createdAt: -1 });
@@ -76,6 +77,18 @@ app.get("/api/contact", async (req, res) => {
   }
 });
 
+// ✅ WebSocket Handling
+wss.on("connection", (ws) => {
+  console.log("✅ WebSocket connected");
+
+  ws.on("message", (message) => {
+    console.log("💬 Received:", message);
+    ws.send("Message received!");
+  });
+
+  ws.on("close", () => console.log("⚠️ WebSocket disconnected"));
+});
+
 // ✅ Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
